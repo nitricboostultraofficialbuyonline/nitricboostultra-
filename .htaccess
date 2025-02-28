@@ -1,0 +1,66 @@
+# Enable the rewrite engine
+RewriteEngine On
+
+# Redirect www to non-www
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+
+# Force HTTPS (optional, remove if not needed)
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# Ensure trailing slash (optional, remove if not needed)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*[^/])$ /$1/ [R=301,L]
+
+
+# Caching settings
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 day"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/x-javascript "access plus 1 week"
+    ExpiresByType application/xml "access plus 1 hour"
+    ExpiresByType text/xml "access plus 1 hour"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Cache-Control headers
+    Header set Cache-Control "max-age=86400, public"
+    Header unset ETag
+    FileETag None
+</IfModule>
+
+# Security settings
+<IfModule mod_rewrite.c>
+    # Prevent directory listing
+    Options -Indexes
+
+    # Block access to sensitive files
+    <FilesMatch "\.(htaccess|htpasswd|config\.php)">
+        Order Allow,Deny
+        Deny from all
+    </FilesMatch>
+
+    # Protect .htaccess file
+    <Files ".htaccess">
+        Order Allow,Deny
+        Deny from all
+    </Files>
+
+    # Restrict access by IP (optional, adjust as needed)
+    # Order Deny,Allow
+    # Deny from all
+    # Allow from xx.xx.xx.xx
+</IfModule>
+
+# Disable PHP execution in certain directories (optional)
+<FilesMatch "\.(php|phtml)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
